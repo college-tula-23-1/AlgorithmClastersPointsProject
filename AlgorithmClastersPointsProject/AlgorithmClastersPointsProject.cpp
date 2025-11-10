@@ -1,6 +1,12 @@
-﻿#include <iostream>
+﻿#include "Console.h"
+
+#include <iostream>
 #include <vector>
 #include <list>
+
+#undef max;
+
+
 
 struct Point
 {
@@ -11,7 +17,6 @@ std::vector<Point> PointsInit();
 
 int Random(int top)
 {
-    srand(time(nullptr));
     return rand() % top;
 }
 
@@ -24,9 +29,15 @@ template <class Iterator>
 std::vector<std::list<Point>> Clusters(
     const Iterator begin, const Iterator end, int clastersCount);
 
+void ClustersGraph(std::vector<std::list<Point>> clusters);
+
+template <class Iterator>
+void ClusterGraph(const Iterator begin, const Iterator end, Point start, Colors color);
 
 int main()
 {
+    srand(time(nullptr));
+
     std::vector<Point> points = PointsInit();
 
     int clustersCount{ 3 };
@@ -41,11 +52,18 @@ int main()
             std::cout << "[" << p->x << "," << p->y << "] ";
         std::cout << "\n";
     }
+
+    ClustersGraph(clustersPoints);
 }
 
 std::vector<Point> PointsInit()
 {
     std::vector<Point> points;
+
+    /*points.push_back(Point{ 3, 4 });
+    points.push_back(Point{ 3, 14 });
+    points.push_back(Point{ 13, 4 });*/
+
 
     points.push_back(Point{ 2, 3 });
     points.push_back(Point{ 3, 4 });
@@ -54,7 +72,7 @@ std::vector<Point> PointsInit()
     points.push_back(Point{ 11, 8 });
     points.push_back(Point{ 13, 9});
     points.push_back(Point{ 4, 10 });
-    points.push_back(Point{ 7, 11 });
+    points.push_back(Point{ 5, 11 });
     points.push_back(Point{ 11, 11 });
     points.push_back(Point{ 14, 11 });
     points.push_back(Point{ 2, 12 });
@@ -140,4 +158,55 @@ std::vector<std::list<Point>> Clusters(const Iterator begin, const Iterator end,
     } while (isModified);
 
     return clusters;
+}
+
+template<class Iterator>
+void ClusterGraph(const Iterator begin, const Iterator end, Point start, Colors color)
+{
+    char pointChar = 176;
+    std::string pointStr(2, pointChar);
+
+    Console console;
+    console.Foreground(color);
+
+    for (Iterator it = begin; it != end; it++)
+    {
+        console.WritePosition(start.y + it->y, (start.x + it->x * 2), pointStr);
+    }
+}
+
+void ClustersGraph(std::vector<std::list<Point>> clusters)
+{
+    Console console;
+
+    size_t size{ 20 };
+    Point start{ 10, 6 };
+
+    char horizontal = 196;
+    char vertical = 179;
+    char left_top = 218;
+
+    for (int i{}; i < size + 1; i++) {
+        console.WritePosition(start.y + i, start.x - 3, std::to_string(i));
+        console.WritePosition(start.y + i, start.x, vertical);
+    }
+        
+
+    for (int i{}; i < size + 1; i++)
+    {
+        console.WritePosition(start.y - 1, start.x + 2 * i, std::to_string(i));
+        console.WritePosition(start.y, start.x + 2 * i, horizontal);
+        console.WritePosition(start.y, start.x + 2 * i + 1, horizontal);
+    }
+        
+    console.WritePosition(start.y, start.x, left_top);
+    
+
+    ClusterGraph(clusters[0].begin(), clusters[0].end(), start, Colors::Cyan);
+    ClusterGraph(clusters[1].begin(), clusters[1].end(), start, Colors::Magenta);
+    ClusterGraph(clusters[2].begin(), clusters[2].end(), start, Colors::Yellow);
+    
+
+    console.SetPosition(start.y + size + 1, 0);
+
 }
